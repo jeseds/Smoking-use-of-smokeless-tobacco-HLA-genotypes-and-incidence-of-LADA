@@ -1,0 +1,96 @@
+
+/************************************************************* SMOKING STATUS *****************************************************************/
+
+proc freq data=smkhla;
+tables type_t*smokF;
+tables type_eira*smokF;
+run;
+
+title 'Smoking status and LADA';
+proc logistic descending data=smkhla;
+where type_t='LADA' | type_eira='EIRA_2';
+strata St_var;
+class smokF (ref='never') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = smokF 
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+proc logistic descending data=smkhla;
+where type_t='LADA' | type_EIRA='EIRA_2';
+strata St_var;
+class conf_alcohol (ref='2') conf_edu (ref=first);
+model y_ladaAPU = smke2
+age_2 Conf_BMIcount BMI_2 conf_alcohol conf_edu
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+/******************************** SMOKING INTENSITY *************************************/
+
+proc freq data=smkhla;
+tables type_t*heavysmkc20;
+tables type_EIRA*heavysmkc20;
+run;
+
+
+title 'Per 5 cig (current) and LADA';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2');
+class conf_edu (ref=first) conf_alcohol (ref='2');
+strata St_var;
+model y_ladaAPU = cig5c smkint1 smkf
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+title 'Smoking intensity (current) and LADA';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2') & heavysmkc20^=.;
+strata St_var;
+class heavysmkc20 (ref='1') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = heavysmkc20 conf_sex conf_age
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+
+/************************************************* PACK-YEARS *********************************************************/
+
+proc freq data=smkhla;
+tables type_t*packe15;
+tables type_eira*packe15;
+run;
+
+title 'Pack-years and LADA';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2') & packe15^=.;
+strata St_var;
+class packe15 (ref=first) conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = packe15 conf_age conf_sex
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+/*********************************************** PER 5 PACK-YEARS ****************************************************/
+
+title 'LADA per 5 pack-years';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2');
+strata St_var;
+class conf_edu (ref=first) conf_alcohol (ref='2')
+model y_ladaAPU = tpacky5 age_2 smkp1 smkp2 conf_age conf_sex 
+Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+

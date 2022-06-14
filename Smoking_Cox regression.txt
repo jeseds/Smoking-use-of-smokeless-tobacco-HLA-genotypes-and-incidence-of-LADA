@@ -1,0 +1,116 @@
+/************************************* Smoking status and LADA/T2D **********************************/
+
+proc sort data=huntf;
+by smk_t;
+run;
+
+proc means data=huntf;
+var P_years;
+where smk_t^='';
+/*by smk_t;*/
+output out=pr1 Sum=sum;
+run;
+
+proc freq data=huntf;
+tables diab*smk_t;
+where smk_t^='';
+run;
+
+title 'Smoking and the risk of LADA';
+proc phreg data=huntf;
+class smk_t (ref='never');
+model (start,stop)*LADA(0)= smk_t sex BMI_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m/rl;
+where smk_t^='';
+run;
+
+
+proc sort data=huntf;
+by smke2_t;
+
+proc means data=huntf;
+var P_years;
+where smke_t2^='';
+by smke_t2;
+output out=pr2 Sum=sum;
+
+proc freq data=huntf;
+tables diab*smke_t2;
+run;
+
+title 'Smoking current vs non and risk of LADA';
+proc phreg data=huntf;
+class smke_t2 (ref='non');
+model (start,stop)*LADA(0)= smke_t2 sex BMI_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m /rl;
+where smke2_t^='';
+run;
+
+
+/************************************* Smoking intensity and LADA/T2D **********************************/
+
+
+title 'Smoking per 5 cigarettes and risk of LADA'; 
+proc phreg data=huntf;
+model (start,stop)*LADA(0)= smkintc5_t smkint1 smkf sex bmi_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m/rl;
+where smk_t^='';
+run;
+
+proc sort data=huntf;
+by smkintc20_t;
+
+proc means data=huntf;
+var P_years;
+where smkintc20_t^='';
+by smkintc20_t;
+output out=pr3 Sum=sum;
+
+proc freq data=huntf;
+tables diab*smkintc20_t;
+run;
+
+title 'Smoking intensity (current-20) and risk of LADA'; 
+proc phreg data=huntf;
+class smkintc20_t (ref='never');
+model (start,stop)*LADA(0)= smkintc20_t sex bmi_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m/rl;
+where smkintc20_t^='';
+run;
+
+
+/**************************************** PACK-YEARS ***********************************************/
+
+proc sort data=huntf;
+by packe15_t;
+
+proc means data=huntf;
+var P_years;
+where packe15_t^=.;
+by packe15_t;
+output out=pr4 Sum=sum;
+
+proc freq data=huntf;
+tables diab*packe15_t;
+
+run;
+
+title 'Categorised pack-years and risk of LADA'; 
+proc phreg data=huntf;
+class packe15_t (ref=first);
+model (start,stop)*LADA(0)= packe15_t sex bmi_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m/rl;
+where packe15_t^=.;
+run;
+
+
+
+
+proc sort data=huntf;
+by smk_t;
+
+proc means data=huntf;
+var P_years;
+where smk_t^='';
+output out=pr5 Sum=sum;
+
+title 'Per 5 pack-years and risk of LADA'; 
+proc phreg data=huntf;
+model (start,stop)*LADA(0)= PY5_t smkp1 smkp2 sex BMI_t bmi2_t edu2 edu3 alc1 alc3 alc4 bmi_m edu_m alc_m/rl;
+where smk_t^='';
+run;

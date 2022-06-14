@@ -1,0 +1,134 @@
+
+
+/************* Preparation - truncation of GADA and log of variables **************/
+
+data smkhla;
+set smkhla;
+
+gad=ANDI_gadab;
+if ANDI_gadab>250 then gad=250;
+
+lngad=log(gad);
+lngadab=log(ANDI_gadab);
+
+lhomaIR2= log (HOMA_IR);
+lhomab2= log (HOMA_B);
+
+run;
+
+
+
+/********************************* Linear regression *******************************/
+
+
+
+* HOMA-IR and SMOKING;
+
+title 'HOMA-IR, smoking and LADA';
+PROC reg data=smkhla; 
+where   type_t='LADA' & smokF^='' /*& packe15^=.*/ & lhomaIR2^=.;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+MODEL   lhomaIR2 =  smkc smkf /*pack1 pack2*/ /*tpacky5 smkp1 smkp2*/
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol /CLB; 
+run;
+
+
+* HOMA-IR and SNUS USE;
+
+title 'HOMA-IR, snus use and LADA';
+PROC reg data=smkhla; 
+where   type_t='LADA' & snusF^=''  & /*boxe15^=. */ lhomaIR2^=.;
+class conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+MODEL   lhomaIR2 = sns1 sns2 /*box1 box2*/ /*tsnusPY5 snsp1 snsp2*/
+conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol smokF/CLB; 
+run;
+
+
+* HOMA-IR and TOBACCO USE;
+
+title 'HOMA-IR, tobacco use and LADA';
+PROC reg data=smkhla; 
+where   type_t='LADA' & tobaccoF^='' /*& pack15^=. & box15^=.*/ & lhomaIR2^=.;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+MODEL   lhomaIR2 =  tob1 tob2 /*tob151 tob152*/
+conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol  /CLB; 
+run;
+
+
+
+* HOMA-B and SMOKING;
+
+title 'HOMA-B, smoking and LADA';
+PROC reg data=smkhla; 
+where   type_t='LADA' & lhomab2^=. /* & packe15^=.*/;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+MODEL   lhomab2 = smkf smkc /*pack1 pack2*/ /*tpacky5 smkp1 smkp2*/ 
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol  /CLB; 
+run;  
+
+
+* HOMA-B and SNUS USE;
+
+title 'HOMA-B, snus use and LADA';
+PROC reg data=smkhla;
+where   type_t='LADA' & snusF^='' /* & boxe15^=.*/ & lhomab2^=.;
+class conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+MODEL   lhomab2 =  sns1 sns2 /*box1 box2*/ /*tsnusPY5 snsp1 snsp2*/
+conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok /CLB; 
+run;
+
+
+*HOMA-B and TOBACCO;
+
+title 'HOMA-B, tobacco use and LADA';
+PROC reg data=smkhla; 
+where   type_t='LADA' & tobaccoF^='' & lhomab2^=.;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+MODEL   lhomab2 =  tob1 tob2
+conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol /CLB; 
+run;
+
+
+
+/********************* TOBIT REGRESSION **********************/
+
+data smkhla;
+set smkhla;
+cens_l=lngad;
+ cens_h=lngad;
+  if gad=1 then cens_l=.;
+  if gad=250 then cens_h=.; 
+run;
+
+title 'Smoking, GADA and LADA';
+proc lifereg data=smkhla /*outest=x3*/;
+where type_t='LADA' & gad^=. /*& packe15^=.*/;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+model (cens_l,cens_h)= smkc smkf /*pack1 pack2*/ /*tpacky5 smkp1 smkp2*/
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol/d=normal;
+run; 
+
+title 'Snus, GADA and LADA';
+proc lifereg data=smkhla /*outest=x3*/;
+where type_t='LADA' & gad^=. /*& boxe15^=. */;
+class conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+model (cens_l,cens_h)= sns1 sns2 /*box1 box2*/ /*tsnusPY5 snsp1 snsp2*/
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok/d=normal;
+run; 
+
+title 'Tobacco use, GADA and LADA';
+proc lifereg data=smkhla /*outest=x3*/;
+where type_t='LADA';
+class conf_edu (ref=first) conf_alcohol (ref='2');
+model (cens_l,cens_h)= /*tob151*/ tob152
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 edu2 edu3 alc1 alc3 alc4 alc5  /d=normal;
+run; 
+
+proc lifereg data=smkhla /*outest=x3*/;
+where type_t='LADA';
+model (cens_l,cens_h)= tob1 tob2
+Conf_age age_2 conf_sex Conf_BMIcount bmi_2 conf_edu conf_alcohol /d=normal;
+run; 
+
+
+

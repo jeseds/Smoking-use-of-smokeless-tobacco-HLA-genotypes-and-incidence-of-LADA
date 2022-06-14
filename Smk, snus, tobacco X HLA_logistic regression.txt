@@ -1,0 +1,280 @@
+
+
+/*********************************************** Smoking current vs non * HLA high/low *************************************************/ 
+
+
+DATA smkhla;
+SET smkhla;
+
+if smke2^=. & hla_high^=. then do; 
+
+if smke2=0 & hla_high=0 then ind00=1;
+else ind00=0;
+if smke2=1 & hla_high=1 then ind11=1; 
+else ind11=0;
+if smke2=1 & hla_high=0 then ind10=1; 
+else ind10=0;
+if smke2=0 & hla_high=1 then ind01=1;
+else ind01=0;
+end;
+
+run;
+
+proc freq data=smkhla;
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+where hla_high^=.;
+run;
+
+
+title 'Smoking current vs non* HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (hla_high^=.)))
+OUTEST=smke2_lada COVOUT; 
+class conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = ind10 ind01 ind11 age_2 conf_BMICount bmi_2 conf_edu conf_alcohol alc_m edu_m bmi_m
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+DATA smke2_lada;
+  SET smke2_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11;
+  run;
+
+proc print data=smke2_lada;
+RUN;
+
+
+/*********************************************** Smoking never/<15 vs. =>15 pack-years * HLA *******************************************/
+                                                        /* Ever smokers; four categories */
+
+DATA smkhla;
+SET smkhla;
+
+if packe15^=. & hla_high^=. then do; 
+
+if (packe15=1 | packe15=2) & hla_high=0 then ind00=1;
+else ind00=0;
+if packe15=3 & hla_high=1 then ind11=1; 
+else ind11=0;
+if packe15=3 & hla_high=0 then ind10=1; 
+else ind10=0;
+if (packe15=1 | packe15=2) & hla_high=1 then ind01=1;
+else ind01=0;
+
+end;
+run;
+
+proc freq data=smkhla;
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+where packe15^=. & hla_high^=.;
+run;
+
+title 'Pack-years - four categories * HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (packe15^=. & hla_high^=.)))
+OUTEST=PY15_lada COVOUT;
+class conf_edu (ref=first) conf_alcohol (ref='2'); 
+model y_ladaAPU = ind10 ind01 ind11 age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+DATA PY15_lada;
+  SET PY15_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11 ;
+  run;
+
+proc print data=PY15_lada;
+RUN;
+
+
+
+
+
+/*********************************************** Snus current vs non * HLA high/low *************************************************/ 
+
+
+DATA smkhla;
+SET smkhla;
+
+if snuse2^=. & hla_high^=. then do; 
+
+if snuse2=0 & hla_high=0 then ind00=1;
+else ind00=0;
+if snuse2=1 & hla_high=1 then ind11=1; 
+else ind11=0;
+if snuse2=1 & hla_high=0 then ind10=1; 
+else ind10=0;
+if snuse2=0 & hla_high=1 then ind01=1;
+else ind01=0;
+end;
+
+run;
+
+proc freq data=smkhla (where=(hla_high^=.));
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+run;
+
+
+title 'Snus current vs non * HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (hla_high^=.)))
+OUTEST=sns_ever2_lada COVOUT;
+class conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never'); 
+model y_ladaAPU = ind10 ind01 ind11 age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol conf_smok
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+DATA sns_ever2_lada;
+  SET sns_ever2_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11;
+  run;
+
+proc print data=sns_ever2_lada;
+RUN;
+
+
+
+/*********************************************** Snus use never/<15 vs. =>15 box-years * HLA *******************************************/
+                                                        /* Ever smokers; four categories */
+
+
+data smkhla;
+set smkhla;
+
+if boxe15^=. & hla_high^=. then do; 
+
+if (boxe15=1 | boxe15=2) & hla_high=0 then ind00=1;
+else ind00=0;
+if boxe15=3 & hla_high=1 then ind11=1; 
+else ind11=0;
+if boxe15=3 & hla_high=0 then ind10=1; 
+else ind10=0;
+if (boxe15=1 | boxe15=2) & hla_high=1 then ind01=1;
+else ind01=0;
+
+end;
+run;
+
+
+proc freq data=smkhla (where=(boxe15^=. & hla_high^=.));
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+run;
+
+
+title 'Box-years - four categories * HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (boxe15^=. & hla_high^=.)))
+OUTEST=BY15_lada COVOUT; 
+class conf_smok (ref='never') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = ind10 ind01 ind11 age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol conf_smok 
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+DATA BY15_lada;
+  SET BY15_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11;
+  run;
+
+proc print data=BY15_lada;
+RUN;
+
+
+/*************************************************** Tobacco current/non user * HLA high/low ********************************************************/ 
+
+
+DATA smkhla;
+SET smkhla;
+
+if tob_ever2^='' & hla_high^=. then do; 
+
+if tob_ever2='nevex' & hla_high=0 then ind00=1;
+else ind00=0;
+    if tob_ever2='current' & hla_high=1 then ind11=1; 
+    else ind11=0;
+    if tob_ever2='current' & hla_high=0 then ind10=1; 
+    else ind10=0;
+    if tob_ever2='nevex' & hla_high=1 then ind01=1;
+    else ind01=0;
+end;
+run;
+
+proc freq data=smkhla;
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+run;
+
+title 'Tobacco non vs. current * HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (tob_ever2^='' & HLA_high^=.)))
+OUTEST=tob1_lada COVOUT;
+class conf_edu (ref=first) conf_alcohol (ref='2'); 
+model y_ladaAPU = ind10 ind01 ind11 age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+DATA tob1_lada;
+  SET tob1_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11;
+  run;
+
+proc print data=tob1_lada;
+RUN;
+
+
+
+
+
+/*********************************************** Tobacco never/ever * HLA high/low *************************************************/ 
+
+DATA smkhla;
+SET smkhla;
+
+if tob_ever^='' & hla_high^=. then do; 
+
+if tob_ever='never' & hla_high=0 then ind00=1;
+else ind00=0;
+    if tob_ever='ever' & hla_high=1 then ind11=1; 
+    else ind11=0;
+    if tob_ever='ever' & hla_high=0 then ind10=1; 
+    else ind10=0;
+    if tob_ever='never' & hla_high=1 then ind01=1;
+    else ind01=0;
+end;
+run;
+
+proc freq data=smkhla;
+tables type_t*(ind00 ind10 ind01 ind11);
+tables type_eira*(ind00 ind10 ind01 ind11);
+run;
+
+title 'Smoking never/ever * HLA interaction LADA';
+proc logistic descending data=smkhla (where=((TYPE_T='LADA' | type_eira='EIRA_2') & (HLA_high^=.)))
+OUTEST=tob2_lada COVOUT;
+class conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = ind10 ind01 ind11 age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits;
+strata St_var;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+DATA tob2_lada;
+  SET tob2_lada;
+  IF _name_ in('ind10','ind01','ind11') OR _type_='PARMS';
+  KEEP _name_ ind10 ind01 ind11;
+  run;
+
+proc print data=tob2_lada;
+RUN;

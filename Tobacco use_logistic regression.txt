@@ -1,0 +1,69 @@
+
+/********************************************************* Tobacco use status *********************************************************/
+
+proc freq data=smkhla;
+tables type_t*tobaccoF;
+tables type_eira*tobaccoF;
+run;
+
+title 'Tobacco use status - ex and current - and LADA';
+proc logistic descending data=smkhla;
+where type_t='LADA' | type_eira='EIRA_2';
+strata St_var;
+class tobaccoF (ref='never') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = tobaccoF
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+
+/************************************************ Smoking and snus use, different categories **************************************************/
+
+proc freq data=smkhla;
+tables type_t*smksn;                          * Combinations of current, former and never smoking/snus use.;
+tables type_eira*smksn;      
+run;
+
+title 'Tobacco use and LADA';
+proc logistic descending data=smkhla;
+where type_t='LADA' | type_eira='EIRA_2';
+strata St_var;
+class smksn (ref='nevnev') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = smksn
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+
+
+/***************************** Smokíng/snus currrent/non, four categories ********************************/
+
+data smkhla;
+set smkhla.smkhla_8;
+length smksnc $8;
+
+if smke2=1 & snuse2=1 then smksnc='curcur';
+if smke2=1 & snuse2=0 then smksnc='curnon';
+if smke2=0 & snuse2=1 then smksnc='noncur';
+if smke2=0 & snuse2=0 then smksnc='nonnon';
+
+run;
+
+
+proc freq data=smkhla;
+tables type_t*smksnc;
+tables type_eira*smksnc;
+run;
+
+title 'Current tobacco use and LADA';
+proc logistic descending data=smkhla;
+where type_t='LADA' | type_eira='EIRA_2';
+strata St_var;
+class smksnc (ref='nonnon') conf_edu (ref=first) conf_alcohol (ref='2');
+model y_ladaAPU = smksnc
+age_2 Conf_BMIcount BMI_2 conf_edu conf_alcohol
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;

@@ -1,0 +1,95 @@
+
+/******************************************************** SNUS USE STATUS *****************************************************************/
+
+proc freq data=smkhla;
+tables type_t*snusF;
+tables type_eira*snusF;
+run;
+
+title 'Snus use status and LADA';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2');
+strata St_var;
+class snusF (ref='never') conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+model y_ladaAPU=snusF
+age_2
+Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+proc freq data=smkhla;
+tables type_t*snuse2;
+tables type_eira*snuse2;
+run;
+
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2');
+strata St_var;
+class conf_smok (ref='never') conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+model y_ladaAPU  = snuse2
+age_2 
+Conf_BMIcount bmi_2 conf_edu conf_alcohol  conf_smok
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+
+/********************************************************** SNUS USE INTENSITY ***************************************************************/
+
+proc freq data=smkhla;
+tables type_t*heavysnus7;
+tables type_eira*heavysnus7;
+run;
+
+title 'LADA and snus use intensity in current users';
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2') & heavysnus7^=.;
+strata St_var;
+class heavysnus7 (ref=first) conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+model y_ladaAPU  = heavysnus7 
+age_2 
+Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok
+/risklimits;
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot;
+run;
+
+
+
+/*********************************************************** BOX-YEARS ********************************************************************/
+
+proc freq data=smkhla;
+tables type_t*boxe15;
+tables type_eira*boxe15;
+where smokF='never';
+run;
+
+title 'LADA and box-years in ever users'; 
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2') & boxe15^=.;
+strata St_var;
+class boxe15 (ref=first) conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never');
+model y_ladaAPU = boxe15 
+age_2 
+Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
+
+
+/********************************** PER 5 BOX-YEARS ***********************************/
+
+title 'LADA risk per 5 box-years'; 
+proc logistic descending data=smkhla;
+where (type_t='LADA' | type_eira='EIRA_2');
+strata St_var;
+class conf_edu (ref=first) conf_alcohol (ref='2') conf_smok (ref='never')
+model y_ladaAPU = tsnusPY5 
+age_2 snsp1 snsp2
+Conf_BMIcount bmi_2 conf_edu conf_alcohol conf_smok
+/risklimits; 
+ods exclude  ModelInfo  NObs   StrataSummary   ConvergenceStatus   FitStatistics  GlobalTests  ParameterEstimates ORPlot ;
+run;
+
